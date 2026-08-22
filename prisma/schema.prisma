@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  code         String
+  name         String?
+  role         String   @default("user") // "admin" | "user"
+  shopId       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Boat {
+  id               String   @id @default(cuid())
+  name             String
+  registrationNum  String?
+  captainName      String?
+  notes            String?
+  status           String   @default("active") // "active" | "maintenance" | "in_trip"
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  trips            Trip[]
+}
+
+model CrewMember {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tripCrews TripCrew[]
+}
+
+model Buyer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Sale[]
+}
+
+model Trip {
+  id                 String    @id @default(cuid())
+  boatId             String
+  boat               Boat      @relation(fields: [boatId], references: [id])
+  captainName        String?
+  departureDate      DateTime  @default(now())
+  expectedReturnDate DateTime?
+  actualReturnDate   DateTime?
+  status             String    @default("preparing") // "preparing" | "at_sea" | "returned" | "closed"
+  crewPaymentMethod  String    @default("gross") // "fixed" | "gross" | "after_expenses"
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  tripCrews          TripCrew[]
+  catches            Catch[]
+  expenses           Expense[]
+  sales              Sale[]
+}
+
+model TripCrew {
+  id            String  @id @default(cuid())
+  tripId        String
+  trip          Trip    @relation(fields: [tripId], references: [id])
+  crewMemberId  String
+  crewMember    CrewMember @relation(fields: [crewMemberId], references: [id])
+  paymentType   String  @default("percentage") // "fixed" | "percentage"
+  fixedAmount   Float?
+  percentage    Float?
+
+  @@unique([tripId, crewMemberId])
+}
+
+model FishCategory {
+  id         String            @id @default(cuid())
+  name       String
+  defaultUnit String?
+  defaultPrice Float?
+  createdAt  DateTime          @default(now())
+  catches    Catch[]
+  sales      Sale[]
+  inventory  Inventory[]
+}
+
+model FishQuality {
+  id         String            @id @default(cuid())
+  name       String
+  createdAt  DateTime          @default(now())
+  catches    Catch[]
+  sales      Sale[]
+  inventory  Inventory[]
+}
+
+model Catch {
+  id              String        @id @default(cuid())
+  tripId          String
+  trip            Trip          @relation(fields: [tripId], references: [id])
+  fishCategoryId  String
+  fishCategory    FishCategory  @relation(fields: [fishCategoryId], references: [id])
+  fishQualityId   String
+  fishQuality     FishQuality   @relation(fields: [fishQualityId], references: [id])
+  quantity        Float
+  unit            String        @default("kg")
+  estimatedPrice  Float?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model ExpenseCategory {
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now())
+  expenses  Expense[]
+}
+
+model Expense {
+  id               String          @id @default(cuid())
+  tripId           String
+  trip             Trip            @relation(fields: [tripId], references: [id])
+  expenseCategoryId String
+  expenseCategory  ExpenseCategory @relation(fields: [expenseCategoryId], references: [id])
+  amount           Float
+  date             DateTime        @default(now())
+  description      String?
+  photoUrl         String?
+  photoLocalStatus String?         @default("none")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Sale {
+  id              String        @id @default(cuid())
+  tripId          String
+  trip            Trip          @relation(fields: [tripId], references: [id])
+  buyerId         String
+  buyer           Buyer         @relation(fields: [buyerId], references: [id])
+  fishCategoryId  String
+  fishCategory    FishCategory  @relation(fields: [fishCategoryId], references: [id])
+  fishQualityId   String
+  fishQuality     FishQuality   @relation(fields: [fishQualityId], references: [id])
+  quantity        Float
+  salePrice       Float
+  totalAmount     Float
+  date            DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  payments        Payment[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  amount    Float
+  date      DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Inventory {
+  id              String       @id @default(cuid())
+  fishCategoryId  String
+  fishCategory    FishCategory @relation(fields: [fishCategoryId], references: [id])
+  fishQualityId   String
+  fishQuality     FishQuality  @relation(fields: [fishQualityId], references: [id])
+  caught          Float        @default(0)
+  sold            Float        @default(0)
+  unit            String       @default("kg")
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([fishCategoryId, fishQualityId])
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}

@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sand: #f7f2e9;
+  --color-sand-dim: #ece3d2;
+  --color-ink: #0b1220;
+  --color-ink-soft: #4b5768;
+  --color-ink-faint: #8b94a3;
+  --color-sea: #146574;
+  --color-sea-soft: #e4eef0;
+  --color-rope: #c1652e;
+  --color-rope-dark: #9c4e22;
+  --color-rope-soft: #fbebe0;
+  --color-foam: #fff;
+  --color-success: #2f7d5c;
+  --color-success-soft: #e3f0ea;
+  --color-danger: #b43c34;
+  --color-danger-soft: #f7e4e2;
+  --font-display: "El Messiri", ui-serif, serif;
+  --font-body: "IBM Plex Sans Arabic", "Inter", ui-sans-serif, sans-serif;
+}
+
+body {
+  background-color: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+@media (prefers-color-scheme: dark) {
+  body { background-color: var(--color-ink); color: var(--color-sand); }
+}
+
+h1, h2, h3 { font-family: var(--font-display); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-slide-up { animation: slideUp 0.3s ease-out; }
