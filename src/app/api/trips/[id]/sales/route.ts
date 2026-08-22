@@ -36,7 +36,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   await prisma.inventory.update({
     where: { fishCategoryId_fishQualityId: { fishCategoryId: body.fishCategoryId, fishQualityId: body.fishQualityId } },
-    update: { sold: { increment: body.quantity } },
+    data: { sold: { increment: body.quantity } },
   });
 
   if (body.paymentAmount && body.paymentAmount > 0) {
