@@ -24,3 +24,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
   return NextResponse.json(expense, { status: 201 });
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json();
+  if (!body.expenseId) return NextResponse.json({ error: "Missing expenseId" }, { status: 400 });
+  await prisma.expense.delete({ where: { id: body.expenseId } });
+  return NextResponse.json({ ok: true });
+}

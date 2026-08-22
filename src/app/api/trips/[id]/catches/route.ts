@@ -33,3 +33,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   return NextResponse.json(catchItem, { status: 201 });
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json();
+  if (!body.catchId) return NextResponse.json({ error: "Missing catchId" }, { status: 400 });
+
+  const existing = await prisma.catch.findUnique({ where: { id: body.catchId } });
+  if (existing) {
+    await prisma.inventory.update({
+      where: { fishCategoryId_fishQualityId: { fishCategoryId: existing.fishCategoryId, fishQualityId: existing.fishQualityId } },
+      data: { caught: { decrement: existing.quantity } },
+    });
+  }
+  await prisma.catch.delete({ where: { id: body.catchId } });
+  return NextResponse.json({ ok: true });
+}

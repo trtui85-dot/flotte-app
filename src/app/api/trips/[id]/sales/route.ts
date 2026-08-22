@@ -45,3 +45,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   return NextResponse.json(sale, { status: 201 });
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json();
+  if (!body.saleId) return NextResponse.json({ error: "Missing saleId" }, { status: 400 });
+
+  const existing = await prisma.sale.findUnique({ where: { id: body.saleId } });
+  if (existing) {
+    await prisma.inventory.update({
+      where: { fishCategoryId_fishQualityId: { fishCategoryId: existing.fishCategoryId, fishQualityId: existing.fishQualityId } },
+      data: { sold: { decrement: existing.quantity } },
+    });
+    await prisma.payment.deleteMany({ where: { saleId: body.saleId } });
+  }
+  await prisma.sale.delete({ where: { id: body.saleId } });
+  return NextResponse.json({ ok: true });
+}
